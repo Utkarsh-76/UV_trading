@@ -1,0 +1,11 @@
+venv
+*.pyc
+.DS_Store
+.env
+data
+data_me
+.idea
+chromedriver
+temp.py
+instruments_list.py
+opt_sum.log
