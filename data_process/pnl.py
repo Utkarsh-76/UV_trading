@@ -4,8 +4,7 @@ import json
 from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.requests import StockLatestBarRequest, StockLatestQuoteRequest
 from alpaca.trading.client import TradingClient
-from alpaca.trading.requests import MarketOrderRequest
-from alpaca.trading.enums import OrderSide, TimeInForce
+from helper.order import close_all_option_positions
 from dir_path import base_dirname
 from log_config import configure_logging
 import logging
@@ -307,101 +306,6 @@ def check_and_close_losing_positions():
 
     except Exception as e:
         error_message = f"Error checking stop-loss and closing positions: {str(e)}"
-        logging.error(error_message)
-        return {"status": "error", "message": error_message}
-
-
-def close_all_option_positions():
-    """
-    Closes only option positions in the Alpaca account.
-
-    Returns:
-    - dict: Information about closed option positions
-    """
-    try:
-        # Initialize trading client
-        trading_client = TradingClient(API_KEY, API_SECRET, paper=True)
-
-        # Get all open positions
-        positions = trading_client.get_all_positions()
-
-        if not positions:
-            logging.info("No open positions to close.")
-            return {"status": "success", "message": "No open positions found"}
-
-        # Filter for option positions only (based on symbol format)
-        option_positions = [p for p in positions if len(p.symbol) > 6]  # Simple check for options
-
-        if not option_positions:
-            logging.info("No open option positions to close.")
-            return {"status": "success", "message": "No open option positions found"}
-
-        # Log the number of option positions to close
-        logging.info(f"Closing {len(option_positions)} open option positions...")
-
-        results = {
-            "status": "success",
-            "closed_positions": [],
-            "failed_positions": []
-        }
-
-        # Close each option position one by one
-        for position in option_positions:
-            try:
-                symbol = position.symbol
-                qty = abs(float(position.qty))
-
-                # Determine the side for closing order (opposite of current position)
-                side = OrderSide.SELL if float(position.qty) > 0 else OrderSide.BUY
-
-                logging.info(f"Closing option position: {qty} units of {symbol} with {side.name} order")
-
-                # Create order request
-                order_request = MarketOrderRequest(
-                    symbol=symbol,
-                    qty=qty,
-                    side=side,
-                    time_in_force=TimeInForce.DAY
-                )
-
-                # Submit the order
-                order_result = trading_client.submit_order(order_data=order_request)
-
-                # Add to successful results
-                results["closed_positions"].append({
-                    "symbol": symbol,
-                    "qty": qty,
-                    "side": side.name,
-                    "order_id": order_result.id,
-                    "order_status": order_result.status
-                })
-
-                logging.info(
-                    f"Successfully placed order to close {symbol} option position. Order ID: {order_result.id}")
-
-            except Exception as e:
-                error_message = f"Failed to close option position for {symbol}: {str(e)}"
-                logging.error(error_message)
-
-                # Add to failed results
-                results["failed_positions"].append({
-                    "symbol": symbol,
-                    "qty": qty if 'qty' in locals() else None,
-                    "error": str(e)
-                })
-
-        # Check if all option positions were successfully closed
-        if results["failed_positions"]:
-            results["status"] = "partial_success"
-            logging.warning(
-                f"Closed {len(results['closed_positions'])} option positions, but failed to close {len(results['failed_positions'])} option positions.")
-        else:
-            logging.info(f"Successfully closed all {len(results['closed_positions'])} option positions.")
-
-        return results
-
-    except Exception as e:
-        error_message = f"Error closing option positions: {str(e)}"
         logging.error(error_message)
         return {"status": "error", "message": error_message}
 
