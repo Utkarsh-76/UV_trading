@@ -3,9 +3,9 @@ import datetime
 from datetime import datetime as dt
 
 
-def get_ist_date_time(days=0):
+def get_est_date_time(days=0):
 
-    ist_timezone = pytz.timezone('Asia/Kolkata')
+    ist_timezone = pytz.timezone('America/New_York')
 
     now_utc = datetime.datetime.now(pytz.utc)
 
@@ -44,75 +44,17 @@ def check_month_end(date_ist):
         return False
 
 
-def get_index_by_day(date_ist, index_no=1):
-    weekday = date_ist.weekday()
-    if weekday == 1:
-        if index_no == 1:
-            return {
-                "exchange": "BSE",
-                "name": "SENSEX",
-                "fno_exchange": "BFO",
-                "ohlc_symbol": "SENSEX",
-                "ticker": 100,
-                "lot_size": 20,
-                "no_of_lots": 7,
-                "secondary_index_days_till_expiry": 2
-            }
-        else:
-            return {
-                "exchange": "BSE",
-                "name": "BANKEX",
-                "fno_exchange": "BFO",
-                "ohlc_symbol": "BANKEX",
-                "ticker": 100,
-                "lot_size": 30,
-                "no_of_lots": 8,
-            }
-    elif weekday == 3:
-        if index_no == 1:
-            return {
-                "exchange": "NSE",
-                "name": "NIFTY",
-                "fno_exchange": "NFO",
-                "ohlc_symbol": "NIFTY 50",
-                "ticker": 50,
-                "lot_size": 75,
-                "no_of_lots": 6,
-                "secondary_index_days_till_expiry": 5
-            }
-        else:
-            return {
-                "exchange": "NSE",
-                "name": "BANKNIFTY",
-                "fno_exchange": "NFO",
-                "ohlc_symbol": "NIFTY BANK",
-                "ticker": 100,
-                "lot_size": 30,
-                "no_of_lots": 8
-            }
-    # elif weekday == 4:
-    #     return {
-    #         "exchange": "NSE",
-    #         "name": "FINNIFTY",
-    #         "fno_exchange": "NFO",
-    #         "ohlc_symbol": "NIFTY FIN SERVICE",
-    #         "ticker": 50,
-    #         "lot_size": 25}
-    else:
-        return None
-
-
 def get_time_string(hour_, minute_):
     return f"{hour_:02}:{minute_:02}"
 
 
-def get_ist_to_dubai_time_string(hour_, minute_):
+def get_est_to_local_time_string(hour_, minute_):
     time_str = get_time_string(hour_, minute_)
 
     date_ = dt.strptime(time_str, '%H:%M')
-    dubai_time = date_ - datetime.timedelta(hours=5, minutes=30)
+    local_time = date_ + datetime.timedelta(hours=8, minutes=0)
 
-    return dubai_time.strftime('%H:%M')
+    return local_time.strftime('%H:%M')
 
 
 def add_minutes(hour, minute, minutes_to_add):
@@ -120,7 +62,3 @@ def add_minutes(hour, minute, minutes_to_add):
         return hour+1, minute+minutes_to_add-60
     else:
         return hour, minute + minutes_to_add
-
-
-
-# print(get_ist_date_time())
